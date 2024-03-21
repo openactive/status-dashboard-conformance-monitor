@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        feeds: ${{fromJSON(needs.data-catalog.outputs.matrix)}}
+        feed: ${{fromJSON(needs.data-catalog.outputs.matrix)}}
     steps:
 
     # checks out Test Suite and places it in a directory named "tests." The branch used for checkout is determined by
