@@ -1,0 +1,83 @@
+name: Conformance Validation Refresh
+# This workflow is triggered on a schedule
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  data-catalog:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.value }}
+    steps:
+      - id: matrix
+        run: |
+          echo "value=[\"https://reference-implementation.openactive.io/OpenActive\"]" >> $GITHUB_OUTPUT
+      - run: |
+          echo "${{ steps.matrix.outputs.value }}"
+
+  validation:
+    # Specifies that this job depends on the successful completion of two other jobs: "test-server" and "test-fake-database"
+    needs:
+      - data-catalog
+    runs-on: ubuntu-latest
+
+    # Defines a matrix strategy that includes all feeds in the OpenActive catalogue
+    strategy:
+      fail-fast: false
+      matrix:
+        feeds: ${{fromJSON(needs.data-catalog.outputs.matrix)}}
+    steps:
+
+    # checks out Test Suite and places it in a directory named "tests." The branch used for checkout is determined by
+    - name: Checkout OpenActive Test Suite
+      uses: actions/checkout@v2
+      with:
+        repository: openactive/openactive-test-suite
+        path: tests
+    
+    - name: Setup Node.js 18.17.1
+      uses: actions/setup-node@v1
+      with:
+        node-version: 18.17.1
+
+    # runs `npm install` to install the JavaScript dependencies for Test Suite, which is located in the "tests"
+    # directory    
+    - name: Install OpenActive Test Suite
+      run: npm install
+      env:
+        # Puppeteer is not required as we are only running validation, so this will speed up the installation
+        PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+      working-directory: tests
+
+    # runs the OpenActive integration tests for the specified feed
+    - name: Run OpenActive Test Suite feed validation for ${{ matrix.profile }}
+      run: npm run validate-feeds "${{ matrix.feed }}"
+      env:
+        FORCE_COLOR: 1
+        NODE_CONFIG: |
+          {"broker": {"outputPath": "../../output/"}}
+      working-directory: tests
+
+    # uploads the test output as an artifact, which can be used for reference or debugging later  
+    - name: Upload test output for ${{ matrix.mode }} mode as artifact
+      uses: actions/upload-artifact@v2
+      if: ${{ success() || failure() }}
+      with:
+        name: ${{ matrix.profile }}
+        path: ./tests/output/
+
+    # deploys a conformance certificate to Azure Blob Storage, but it is conditional and only runs when the GitHub
+    # branch is `master` and the `profile` is 'all-features' and the `mode` is 'controlled'. For more information on
+    # Coformance Certificates, see `packages/openactive-integration-tests/test/certification/README.md` in Test Suite    
+    - name: Deploy conformance certificate to Azure Blob Storage (master branch for 'all-features' profile in controlled mode only)
+      uses: bacongobbler/azure-blob-storage-upload@v1.2.0
+      if: ${{ github.ref == 'refs/heads/master' }}
+      with:
+        source_dir: ./tests/conformance/
+        container_name: '$web'
+        connection_string: ${{ secrets.CONFORMANCE_MONITOR_BLOB_STORAGE_CONNECTION_STRING }}
+        sync: false
+  
