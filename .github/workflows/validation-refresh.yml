@@ -6,17 +6,25 @@ on:
   pull_request:
     branches: [ master ]
 
+# Limits the workflow to ensure it does not run more than once at once
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   data-catalog:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.result }}
     steps:
-      - uses: actions/setup-node@v3
+      - name: Install Node.js 20.x
+        uses: actions/setup-node@v3
         with:
           node-version: '20.x'
-      - run: npm install @openactive/dataset-utils
-      - id: matrix
+      - name: Install dependencies
+        run: npm install @openactive/dataset-utils
+      - name: Get all Dataset Site URLs
+        id: matrix
         uses: actions/github-script@v7
         with:
           script: |
@@ -48,13 +56,19 @@ jobs:
             }
             
             return await Promise.all(catalogUrls.map(url => fetchDatasetUrls(url))).flat();
-      - run: |
+      - name: List all Dataset Site URLs
+        run: |
           echo "${{ steps.matrix.outputs.result }}"
 
   validation:
     needs:
       - data-catalog
     runs-on: ubuntu-latest
+
+    # Limits validation to only run for each dataset site one at a time
+    # This limits the number of concurrent requests to dataset sites which may be hosted on the same platform
+    concurrency:
+      group: ${{ github.workflow }}
 
     # Defines a matrix strategy that includes all feeds in the OpenActive catalogues
     strategy:
