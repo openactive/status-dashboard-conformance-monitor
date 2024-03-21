@@ -55,7 +55,7 @@ jobs:
               }
             }
             
-            return await Promise.all(catalogUrls.map(url => fetchDatasetUrls(url))).flat();
+            return (await Promise.all(catalogUrls.map(url => fetchDatasetUrls(url)))).flat();
       - name: List all Dataset Site URLs
         run: |
           echo "${{ steps.matrix.outputs.result }}"
