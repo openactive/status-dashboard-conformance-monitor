@@ -1,4 +1,4 @@
-name: Conformance Validation Result Refresh
+name: Refresh Conformance Validation Results
 # This workflow is triggered on a schedule
 on:
   push:
@@ -9,7 +9,6 @@ on:
 # Limits the workflow to ensure it does not run more than once at once
 concurrency:
   group: ${{ github.workflow }}
-  cancel-in-progress: true
 
 jobs:
   data-catalog:
