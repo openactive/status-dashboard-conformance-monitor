@@ -59,6 +59,7 @@ jobs:
     needs:
       - data-catalog
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     # Limits validation to only run for each dataset site one at a time
     # This limits the number of concurrent requests to dataset sites which may be hosted on the same platform
