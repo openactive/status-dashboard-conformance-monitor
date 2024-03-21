@@ -71,6 +71,14 @@ jobs:
       matrix:
         feed: ${{fromJSON(needs.data-catalog.outputs.matrix)}}
     steps:
+    - id: job
+      uses: pl-strflt/job-summary-url-action@v1
+
+    - run: |
+        echo '${{ steps.job.outputs.job_summary_url }}'
+        echo '${{ steps.job.outputs.job_url }}'
+        echo '${{ steps.job.outputs.run_url }}'
+      shell: bash
 
     # checks out Test Suite and places it in a directory named "tests."
     - name: Checkout OpenActive Test Suite
@@ -113,9 +121,8 @@ jobs:
     # deploys a conformance certificate to Azure Blob Storage, but it is conditional and only runs when the GitHub
     # branch is `master` and the `profile` is 'all-features' and the `mode` is 'controlled'. For more information on
     # Coformance Certificates, see `packages/openactive-integration-tests/test/certification/README.md` in Test Suite    
-    - name: Deploy conformance certificate to Azure Blob Storage (master branch for 'all-features' profile in controlled mode only)
+    - name: Deploy validation results to Azure Blob Storage
       uses: bacongobbler/azure-blob-storage-upload@v1.2.0
-      if: ${{ github.ref == 'refs/heads/master' }}
       with:
         source_dir: ./tests/conformance/
         container_name: '$web'
