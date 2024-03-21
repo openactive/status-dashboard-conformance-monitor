@@ -10,7 +10,7 @@ jobs:
   data-catalog:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.matrix.outputs.value }}
+      matrix: ${{ steps.matrix.outputs.result }}
     steps:
       - uses: actions/setup-node@v3
         with:
@@ -43,7 +43,7 @@ jobs:
             
             return await fetchDatasetUrls();
       - run: |
-          echo "${{ steps.matrix.outputs.value }}"
+          echo "${{ steps.matrix.outputs.result }}"
 
   validation:
     needs:
