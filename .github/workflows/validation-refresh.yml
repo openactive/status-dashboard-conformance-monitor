@@ -65,6 +65,7 @@ jobs:
     # This limits the number of concurrent requests to dataset sites which may be hosted on the same platform
     concurrency:
       group: ${{ github.workflow }}
+      cancel-in-progress: false
 
     # Defines a matrix strategy that includes all feeds in the OpenActive catalogues
     strategy:
