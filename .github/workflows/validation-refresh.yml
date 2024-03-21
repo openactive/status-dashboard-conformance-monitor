@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [ master ]
 
-# Limits the workflow to ensure it does not run more than once at once
-concurrency:
-  group: ${{ github.workflow }}
-
 jobs:
   data-catalog:
     runs-on: ubuntu-latest
