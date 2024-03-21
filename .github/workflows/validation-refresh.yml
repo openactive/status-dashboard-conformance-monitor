@@ -38,10 +38,10 @@ jobs:
         repository: openactive/openactive-test-suite
         path: tests
     
-    - name: Setup Node.js 18.17.1
+    - name: Setup Node.js 14.16.0
       uses: actions/setup-node@v1
       with:
-        node-version: 18.17.1
+        node-version: 14.16.0
 
     # runs `npm install` to install the JavaScript dependencies for Test Suite, which is located in the "tests"
     # directory    
